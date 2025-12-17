@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Models\Book;
 use App\Services\Contracts\BookService;
 use Illuminate\Validation\ValidationException; // To catch validation exceptions from service
 use Illuminate\Database\Eloquent\ModelNotFoundException; // To catch not found from service
@@ -12,16 +11,20 @@ use Illuminate\Database\Eloquent\ModelNotFoundException; // To catch not found f
 class BookController extends Controller
 {
 
-    //We inject the BookService to handle business logic
+    /**
+     * Laravel's service container automatically resolves BookService interface
+     * to BookServiceImpl based on our AppServiceProvider bindings
+     */
     public function __construct(protected BookService $bookService)
     { } 
 
     public function index(): View
     {
-        $viewData = [];
-        $viewData["title"] = "Books - Spaghetti Ode";
-        $viewData["subtitle"] = "List of Books";
-        $viewData["books"] = Book::orderBy('id')->get(); // Fetch from DB
+        $viewData = [
+            "title" => "Books - Book Exchange Application",
+            "subtitle" => "Browse Available Books",
+            "books" => $this->bookService->getAllBooks()  // Service handles data retrieval
+        ];
         return view('book.index')->with("viewData", $viewData);
     }
 
@@ -29,15 +32,12 @@ class BookController extends Controller
     {
         try {
             $book = $this->bookService->findBookById($id);
-            if (!$book) {
-                // Or use findOrFail in service and catch ModelNotFoundException
-                abort(404, 'Book not found.');
-            }
 
-            $viewData = [];
-            $viewData["title"] = $book->name . " - Book Exchange Application";
-            $viewData["subtitle"] = $book->name . " - Book Information";
-            $viewData["book"] = $book;
+            $viewData = [
+                "title" => $book->name . " - Book Exchange Application",
+                "subtitle" => $book->name . " - Book Information",
+                "book" => $book
+            ];
             return view('book.show')->with("viewData", $viewData);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Book not found.');
@@ -46,9 +46,10 @@ class BookController extends Controller
 
     public function add(): View
     {
-        $viewData = [];
-        $viewData["title"] = "Add - Spaghetti Ode";
-        $viewData["subtitle"] = "Add a book";
+        $viewData = [
+            "title" => "Add Book - Book Exchange Application",
+            "subtitle" => "Add a New Book to the Collection"
+        ];
         return view('book.add')->with("viewData", $viewData);
     }
 

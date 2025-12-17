@@ -15,7 +15,7 @@ class CommentController extends Controller
     {
         try {
             $commentData = $request->only(['author', 'comment_text']);
-            $this->commentService->addCommentToBook($bookId, $commentData);
+            $this->commentService->addCommentToBook((int)$bookId, $commentData);
             return redirect()->route('book.show', ['id' => $bookId]); 
 
         } catch (ValidationException $e) {
